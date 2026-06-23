@@ -1,20 +1,19 @@
 
-// = 023 ======================================================================
-// 注意：これはオマケのサンプルです！
-// クォータニオンや、ベクトルの内積・外積などが登場しますので、かなり数学的に難
-// しい内容となっています。このサンプルはあくまでもオマケです。理解できなくても
-// くれぐれも落ち込まないようにしてください。
-// このサンプルでは、人工衛星を三角錐で作られたロケットに置き換え、進行方向にき
-// ちんと頭（三角錐の先端）を向けるようにしています。
-// 内積や外積といったベクトル演算は、実際にどのような使いみちがあるのかわかりに
-// くかったりもするので、このサンプルを通じて雰囲気だけでも掴んでおくと、いつか
-// 自分でなにか特殊な挙動を実現したい、となったときにヒントになるかもしれません。
-// 内積・外積だけでもかなりいろんなことが実現できますので、絶対に損はしません。
+// = 021 ======================================================================
+// 地球と月に加え、第三の登場人物として人工衛星を追加して、ベクトルを用いた処理
+// についてもう少し踏み込んで見ていきます。
+// このサンプルでは、月の位置を目がけて人工衛星が常に移動し続けるようになってい
+// ます。つまり「追尾」の動きです。
+// 追尾と言ってしまうと、ゲームなどの分野でしか使えないもののように感じるかもし
+// れませんが、たとえばウェブ上でも、カーソルを追いかけるオブジェクトを作ってみ
+// たり、あるいは狙った方向にオブジェクトを移動させたりと、応用範囲は多岐にわた
+// ります。
+// ベクトルを使った「任意の方向への移動」の原理をしっかり把握しておきましょう。
 // ============================================================================
 
 // 必要なモジュールを読み込み
-import * as THREE from '../lib/three.module.js';
-import { OrbitControls } from '../lib/OrbitControls.js';
+import * as THREE from './lib/three.module.js';
+import { OrbitControls } from './lib/OrbitControls.js';
 
 window.addEventListener('DOMContentLoaded', async () => {
   const wrapper = document.querySelector('#webgl');
@@ -34,13 +33,9 @@ class ThreeApp {
    */
   static MOON_DISTANCE = 3.0;
   /**
-   * 人工衛星の移動速度
+   * 人工衛星の移動速度 @@@
    */
   static SATELLITE_SPEED = 0.05;
-  /**
-   * 人工衛星の曲がる力
-   */
-  static SATELLITE_TURN_SCALE = 0.1;
   /**
    * カメラ定義のための定数
    */
@@ -90,26 +85,24 @@ class ThreeApp {
     far: 20.0,
   };
 
-  wrapper;            // canvas の親要素
-  renderer;           // レンダラ
-  scene;              // シーン
-  camera;             // カメラ
-  directionalLight;   // 平行光源（ディレクショナルライト）
-  ambientLight;       // 環境光（アンビエントライト）
-  controls;           // オービットコントロール
-  axesHelper;         // 軸ヘルパー
-  isDown;             // キーの押下状態用フラグ
-  sphereGeometry;     // ジオメトリ
-  coneGeometry;       // コーンジオメトリ @@@
-  earth;              // 地球
-  earthMaterial;      // 地球用マテリアル
-  earthTexture;       // 地球用テクスチャ
-  moon;               // 月
-  moonMaterial;       // 月用マテリアル
-  moonTexture;        // 月用テクスチャ
-  satellite;          // 人工衛星
-  satelliteMaterial;  // 人工衛星用マテリアル
-  satelliteDirection; // 人工衛星の進行方向
+  wrapper;           // canvas の親要素
+  renderer;          // レンダラ
+  scene;             // シーン
+  camera;            // カメラ
+  directionalLight;  // 平行光源（ディレクショナルライト）
+  ambientLight;      // 環境光（アンビエントライト）
+  controls;          // オービットコントロール
+  axesHelper;        // 軸ヘルパー
+  isDown;            // キーの押下状態用フラグ
+  sphereGeometry;    // ジオメトリ
+  earth;             // 地球
+  earthMaterial;     // 地球用マテリアル
+  earthTexture;      // 地球用テクスチャ
+  moon;              // 月
+  moonMaterial;      // 月用マテリアル
+  moonTexture;       // 月用テクスチャ
+  satellite;         // 人工衛星 @@@
+  satelliteMaterial; // 人工衛星用マテリアル @@@
 
   /**
    * コンストラクタ
@@ -239,16 +232,12 @@ class ThreeApp {
     this.moon.scale.setScalar(ThreeApp.MOON_SCALE);
     this.moon.position.set(ThreeApp.MOON_DISTANCE, 0.0, 0.0);
 
-    // コーンのジオメトリを生成 @@@
-    this.coneGeometry = new THREE.ConeGeometry(0.2, 0.5, 32);
-    // 人工衛星のマテリアルとメッシュ
-    this.satelliteMaterial = new THREE.MeshPhongMaterial({color: 0xff00dd});
-    this.satellite = new THREE.Mesh(this.coneGeometry, this.satelliteMaterial);
+    // 人工衛星のマテリアルとメッシュ @@@
+    this.satelliteMaterial = new THREE.MeshPhongMaterial({ color: 0xff00dd });
+    this.satellite = new THREE.Mesh(this.sphereGeometry, this.satelliteMaterial);
     this.scene.add(this.satellite);
-    this.satellite.scale.setScalar(0.5);
-    // 人工衛星は北極の上あたりに配置し、初期状態は真上に向かって移動するようにしておく @@@
-    this.satellite.position.set(0.0, ThreeApp.MOON_DISTANCE, 0.0);
-    this.satelliteDirection = new THREE.Vector3(0.0, 1.0, 0.0).normalize();
+    this.satellite.scale.setScalar(0.1); // より小さく
+    this.satellite.position.set(0.0, 0.0, ThreeApp.MOON_DISTANCE); // +Z の方向に初期位置を設定
 
     // コントロール
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
@@ -278,31 +267,13 @@ class ThreeApp {
       this.moon.rotation.y += 0.05;
     }
 
-    // (A) 現在（前のフレームまで）の進行方向を変数に保持しておく @@@
-    const previousDirection = this.satelliteDirection.clone();
-
+    // 人工衛星は月を自動追尾する @@@
     // (終点 - 始点) という計算を行うことで、２点間を結ぶベクトルを定義
     const subVector = new THREE.Vector3().subVectors(this.moon.position, this.satellite.position);
     // 長さに依存せず、向きだけを考えたい場合はベクトルを単位化する
     subVector.normalize();
-    // 人工衛星の進行方向ベクトルに、向きベクトルを小さくスケールして加算する
-    this.satelliteDirection.add(subVector.multiplyScalar(ThreeApp.SATELLITE_TURN_SCALE));
-    // (B) 加算したことでベクトルの長さが変化するので、単位化してから人工衛星の座標に加算する
-    this.satelliteDirection.normalize();
-    const direction = this.satelliteDirection.clone();
-    this.satellite.position.add(direction.multiplyScalar(ThreeApp.SATELLITE_SPEED));
-
-    // (C) 変換前と変換後の２つのベクトルから外積で法線ベクトルを求める @@@
-    const normalAxis = new THREE.Vector3().crossVectors(previousDirection, this.satelliteDirection);
-    normalAxis.normalize();
-    // (D) 変換前と変換後のふたつのベクトルから内積でコサインを取り出す
-    const cos = previousDirection.dot(this.satelliteDirection);
-    // (D) コサインをラジアンに戻す
-    const radians = Math.acos(cos);
-    // 求めた法線ベクトルとラジアンからクォータニオンを定義
-    const qtn = new THREE.Quaternion().setFromAxisAngle(normalAxis, radians);
-    // 人工衛星の現在のクォータニオンに乗算する
-    this.satellite.quaternion.premultiply(qtn);
+    // 現在の人工衛星の座標に、向きベクトルを小さくスケールして加算する
+    this.satellite.position.add(subVector.multiplyScalar(ThreeApp.SATELLITE_SPEED));
 
     // レンダラーで描画
     this.renderer.render(this.scene, this.camera);
