@@ -135,21 +135,10 @@ let beforeRadians = 0;
 let resetAxis;
 // マウスカーソルの動きを検出できるようにする @@@
 window.addEventListener('click', (e) => {
-  console.log(beforeRadians);
-  console.log(isMoved);
-  if (isMoved) {
-    const resetQtn = new THREE.Quaternion().setFromAxisAngle(resetAxis, beforeRadians);
-    app.satellite.quaternion.premultiply(resetQtn);
-    app.satellite.position.set(
-      120, 0, 0
-    );
-
-    app.render();
-    isMoved = false;
+  if (app.isAnimating) {
+    app.isAnimating = false;
     return;
   }
-
-  isClicked = true;
 
   // ポインター（マウスカーソル）のクライアント領域上の座標
   const pointerX = e.clientX;
@@ -158,23 +147,12 @@ window.addEventListener('click', (e) => {
   const scaleX = pointerX / window.innerWidth * 2.0 - 1.0;
   const scaleY = pointerY / window.innerHeight * 2.0 - 1.0;
 
-  console.log("X" + scaleX);
-  console.log("Y" + scaleY);
-
-  // const subVector = new THREE.Vector3().subVectors(this.moon.position, this.satellite.position);
-
-  // app.satellite.position.set(
-  //   scaleX * 100,
-  //   scaleY * -100,
-  //   0.0
-  // );
 
   const clickPosVector = new THREE.Vector3(scaleX * 300, scaleY * -300, 0);
 
   const subVector = new THREE.Vector3()
     .subVectors(clickPosVector, app.satellite.position)
     .normalize();
-  console.log(subVector);
 
   const beforePos = new THREE.Vector3(0, 50, 0);
   beforePos.normalize();
@@ -227,13 +205,3 @@ window.addEventListener('click', (e) => {
   beforeRadians = radians;
 
 }, false);
-
-function setHeadPosAnimation(headPos) {
-  requestAnimationFrame(setHeadPosAnimation);
-
-  if (!isClicked) {
-    return;
-  }
-
-
-}
