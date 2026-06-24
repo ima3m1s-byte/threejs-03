@@ -4,6 +4,8 @@
 import * as THREE from '../lib/three.module.js';
 import { OrbitControls } from '../lib/OrbitControls.js';
 
+
+
 class ThreeApp {
   static SATELLITE_DISTANCE = 120;
 
@@ -56,6 +58,7 @@ class ThreeApp {
     // 形
     this.coneGeometry = new THREE.ConeGeometry(10, 25, 32);
 
+
     // 色　MeshPhongMaterial　光沢のある素材
     this.satelliteMaterial = new THREE.MeshPhongMaterial({ color: 0xff00dd });
     // 色と形でメッシュを作成
@@ -64,6 +67,7 @@ class ThreeApp {
 
     // メッシュをシーンに追加
     // this.scene.add(this.satellite);
+
     this.satellite.position.set(ThreeApp.SATELLITE_DISTANCE, 0, 0);
 
     // オブジェクト（球体）
@@ -75,6 +79,8 @@ class ThreeApp {
     this.group.add(this.satellite);
     this.scene.add(this.earth);
     this.scene.add(this.group);
+
+
     // コントロール
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
 
@@ -118,15 +124,17 @@ window.addEventListener("DOMContentLoaded", () => {
   app.render();
 })
 
+const rotateBtn = document.querySelector(".rotatebtn");
+rotateBtn.addEventListener("click", () => {
 
-// マウスカーソルの動きを検出できるようにする @@@
-window.addEventListener('click', (e) => {
+  app.satellite.rotateX(2 * Math.PI / 360 * rotateBtn.dataset.rotate);
 
-  if (app.anime) {
-    app.anime = false;
-    return;
-  }
+  app.render();
+});
 
-  app.anime = true;
 
-}, false);
+const animeBtn = document.querySelector(".animebtn");
+animeBtn.addEventListener("click", () => {
+  app.anime = !app.anime;
+});
+
