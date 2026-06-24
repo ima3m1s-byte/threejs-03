@@ -8,6 +8,8 @@ let isClicked = false;
 let isMoved = false;
 
 class ThreeApp {
+  static SATELLITE_DISTANCE = 150;
+
   constructor(wrapper) {
     this.wrapper = wrapper;
 
@@ -38,15 +40,23 @@ class ThreeApp {
     this.scene.add(this.camera);
     // ライト
     this.directionalLight = new THREE.DirectionalLight(
-      0xffffff, 3
+      0xffffff, 10
     );
+
     this.scene.add(this.directionalLight);
+
+    const lightColor = 0xFFFFFF;
+    const intensity = 1;
+    const light = new THREE.AmbientLight(lightColor, intensity);
+    this.scene.add(light);
+
     const helper = new THREE.DirectionalLightHelper(this.directionalLight, 6);
     this.scene.add(helper);
 
-    // オブジェクト
+
+    // オブジェクト（飛行物）
     // 形
-    this.coneGeometry = new THREE.ConeGeometry(20, 50, 32);
+    this.coneGeometry = new THREE.ConeGeometry(10, 25, 32);
 
     // 色　MeshPhongMaterial　光沢のある素材
     this.satelliteMaterial = new THREE.MeshPhongMaterial({ color: 0xff00dd });
@@ -56,13 +66,23 @@ class ThreeApp {
 
     // メッシュをシーンに追加
     this.scene.add(this.satellite);
+    this.satellite.position.set(ThreeApp.SATELLITE_DISTANCE, 0, 0);
+
+    // オブジェクト（球体）
+    this.ball = new THREE.SphereGeometry(100, 32, 32);
+    // マテリアル
+    this.earthMaterial = new THREE.MeshPhongMaterial({ color: 0x00ff33 });
+    this.earth = new THREE.Mesh(this.ball, this.earthMaterial);
+
+    // メッシュをシーンに追加
+    this.scene.add(this.earth);
 
     // コントロール
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
 
 
     // ヘルパー
-    const axesBarLength = 100;
+    const axesBarLength = 500;
     this.axesHelper = new THREE.AxesHelper(axesBarLength);
     this.scene.add(this.axesHelper);
 
@@ -109,7 +129,7 @@ window.addEventListener('click', (e) => {
     const resetQtn = new THREE.Quaternion().setFromAxisAngle(resetAxis, beforeRadians);
     app.satellite.quaternion.premultiply(resetQtn);
     app.satellite.position.set(
-      0, 0, 0
+      ThreeApp.SATELLITE_DISTANCE, 0, 0
     );
 
     app.render();
@@ -162,6 +182,7 @@ window.addEventListener('click', (e) => {
   // console.log(app.satellite.position);
   isMoved = true;
   app.render();
+  // 元の位置に回転するための軸
   resetAxis = new THREE.Vector3().crossVectors(subVector, beforePos).normalize();
 
   beforeRadians = radians;
