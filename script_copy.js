@@ -8,7 +8,7 @@ let isClicked = false;
 let isMoved = false;
 
 class ThreeApp {
-  static SATELLITE_DISTANCE = 150;
+  static SATELLITE_DISTANCE = 120;
 
   constructor(wrapper) {
     this.wrapper = wrapper;
@@ -53,6 +53,9 @@ class ThreeApp {
     const helper = new THREE.DirectionalLightHelper(this.directionalLight, 6);
     this.scene.add(helper);
 
+    // group
+    this.group = new THREE.Group();
+
 
     // オブジェクト（飛行物）
     // 形
@@ -65,7 +68,7 @@ class ThreeApp {
     this.satelliteDirection = new THREE.Vector3(50, 50, 0).normalize();
 
     // メッシュをシーンに追加
-    this.scene.add(this.satellite);
+    // this.scene.add(this.satellite);
     this.satellite.position.set(ThreeApp.SATELLITE_DISTANCE, 0, 0);
 
     // オブジェクト（球体）
@@ -75,8 +78,11 @@ class ThreeApp {
     this.earth = new THREE.Mesh(this.ball, this.earthMaterial);
 
     // メッシュをシーンに追加
-    this.scene.add(this.earth);
+    // this.scene.add(this.earth);
 
+    this.group.add(this.satellite);
+    this.scene.add(this.earth);
+    this.scene.add(this.group);
     // コントロール
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
 
@@ -100,7 +106,7 @@ class ThreeApp {
 
   render() {
     requestAnimationFrame(this.render);
-
+    // this.group.rotation.z += 0.05;
     // コントロールを更新
     // this.controls.update();
 
