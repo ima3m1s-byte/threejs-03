@@ -35,8 +35,7 @@ class ThreeApp {
     this.camera.position.set(0, 0, +500);
     // カメラの中心の座標的な？オービットコントロールがついてると意味ない的な？
     this.camera.lookAt(300, 0, 0);
-    // console.log(cameraPos);
-    // this.camera.position.set(200, 200, 500);
+
 
     this.scene.add(this.camera);
     // ライト
@@ -46,10 +45,16 @@ class ThreeApp {
     this.scene.add(this.directionalLight);
     const helper = new THREE.DirectionalLightHelper(this.directionalLight, 6);
     this.scene.add(helper);
+
     const colorLight = 0xFFFFFF;
     const intensity = 1;
     const light = new THREE.AmbientLight(colorLight, intensity);
     this.scene.add(light);
+
+    this.isAnimating = false;
+    this.circleCenter = null;
+    this.theta = 0;
+    this.radius = 120;
 
     // オブジェクト
     // 形
@@ -89,8 +94,27 @@ class ThreeApp {
   render() {
     requestAnimationFrame(this.render);
 
-    // コントロールを更新
-    // this.controls.update();
+    if (this.isAnimating) {
+
+      this.theta -= 0.02;
+
+      this.satellite.position.set(
+        this.circleCenter.x + Math.cos(this.theta) * this.radius,
+        this.circleCenter.y + Math.sin(this.theta) * this.radius,
+        0
+      );
+
+      const tangent = new THREE.Vector3(
+        Math.sin(this.theta),
+        -Math.cos(this.theta),
+        0
+      ).normalize();
+
+      this.satellite.quaternion.setFromUnitVectors(
+        new THREE.Vector3(0, 1, 0),
+        tangent
+      );
+    }
 
     // canvas要素をラッパーの子要素にする
     // シーンとカメラでレンダー
@@ -146,7 +170,7 @@ window.addEventListener('click', (e) => {
   // );
 
   const clickPosVector = new THREE.Vector3(scaleX * 300, scaleY * -300, 0);
-  console.log("clickPosVector" + clickPosVector);
+
   const subVector = new THREE.Vector3()
     .subVectors(clickPosVector, app.satellite.position)
     .normalize();
@@ -160,34 +184,48 @@ window.addEventListener('click', (e) => {
   normalAxis.normalize();
   // (D) 変換前と変換後のふたつのベクトルから内積でコサインを取り出す
   const cos = beforePos.dot(subVector);
-  console.log("コス！" + cos);
+
   // (D) コサインをラジアンに戻す
   const radians = Math.acos(cos);
-  console.log("ラディア〜ン" + radians);
+
   const qtn = new THREE.Quaternion().setFromAxisAngle(normalAxis, radians);
   app.satellite.quaternion.premultiply(qtn);
-  // console.log(app.satellite.position);
+
+
+  const direction = subVector.clone();
+
+  const left = new THREE.Vector3(
+    -direction.y,
+    direction.x,
+    0
+  );
+
+  app.circleCenter = app.satellite.position.clone().add(
+    left.multiplyScalar(app.radius)
+  );
+
+  const radiusVector = new THREE.Vector3()
+    .subVectors(
+      app.satellite.position,
+      app.circleCenter
+    );
+
+  app.theta = Math.atan2(
+    radiusVector.y,
+    radiusVector.x
+  );
+
+  app.isAnimating = true;
+
   app.satellite.position.set(120, 0, 0);
   isMoved = true;
-  app.render();
-  resetAxis = new THREE.Vector3().crossVectors(subVector, beforePos).normalize();
 
+  app.render();
+
+  // リセット用の軸
+  resetAxis = new THREE.Vector3().crossVectors(subVector, beforePos).normalize();
   beforeRadians = radians;
 
-
-
-  // - ２を掛けて１を引く -------------------------------------------------
-  // WebGL やグラフィックスプログラミングの文脈では、座標の値を加工するよう
-  // なケースが多くあります。（要は座標変換）
-  // なんらかの座標系（座標の取り扱いを決めた１つのルール）から、別の座標系
-  // へと値を変換する際、座標を 0.0 ～ 1.0 の範囲になるように変換したり、似
-  // たようなケースとして -1.0 ～ 1.0 に変換するような状況がよくあります。
-  // 今回の例では「ブラウザのクライアント領域の座標系」から、三次元の世界で
-  // 扱いやすいように座標を変換しましたが、画面の幅や高さで割ることでまず値
-  // を 0.0 ～ 1.0 の範囲に収まるよう変換し、さらに続けて -1.0 ～ 1.0 に変換
-  // するために２倍して１を引いています。
-  // 単純計算なので、落ち着いて考えてみましょう。
-  // ----------------------------------------------------------------------
 }, false);
 
 function setHeadPosAnimation(headPos) {
