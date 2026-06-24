@@ -8,6 +8,9 @@ let isClicked = false;
 let isMoved = false;
 
 class ThreeApp {
+
+  static SATELLITE_DISTANCE = 120;
+
   constructor(wrapper) {
     this.wrapper = wrapper;
 
@@ -43,10 +46,14 @@ class ThreeApp {
     this.scene.add(this.directionalLight);
     const helper = new THREE.DirectionalLightHelper(this.directionalLight, 6);
     this.scene.add(helper);
+    const colorLight = 0xFFFFFF;
+    const intensity = 1;
+    const light = new THREE.AmbientLight(colorLight, intensity);
+    this.scene.add(light);
 
     // オブジェクト
     // 形
-    this.coneGeometry = new THREE.ConeGeometry(20, 50, 32);
+    this.coneGeometry = new THREE.ConeGeometry(10, 25, 32);
 
     // 色　MeshPhongMaterial　光沢のある素材
     this.satelliteMaterial = new THREE.MeshPhongMaterial({ color: 0xff00dd });
@@ -56,13 +63,14 @@ class ThreeApp {
 
     // メッシュをシーンに追加
     this.scene.add(this.satellite);
+    this.satellite.position.set(120, 0, 0);
 
     // コントロール
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
 
 
     // ヘルパー
-    const axesBarLength = 100;
+    const axesBarLength = 500;
     this.axesHelper = new THREE.AxesHelper(axesBarLength);
     this.scene.add(this.axesHelper);
 
@@ -109,7 +117,7 @@ window.addEventListener('click', (e) => {
     const resetQtn = new THREE.Quaternion().setFromAxisAngle(resetAxis, beforeRadians);
     app.satellite.quaternion.premultiply(resetQtn);
     app.satellite.position.set(
-      0, 0, 0
+      120, 0, 0
     );
 
     app.render();
@@ -137,13 +145,12 @@ window.addEventListener('click', (e) => {
   //   0.0
   // );
 
-  const clickPosVector = new THREE.Vector3(scaleX * 100, scaleY * -100, 0);
+  const clickPosVector = new THREE.Vector3(scaleX * 300, scaleY * -300, 0);
   console.log("clickPosVector" + clickPosVector);
-  const subVector = new THREE.Vector3().subVectors(clickPosVector, app.satellite.position);
+  const subVector = new THREE.Vector3()
+    .subVectors(clickPosVector, app.satellite.position)
+    .normalize();
   console.log(subVector);
-
-  subVector.normalize();
-  console.log("の孫" + subVector);
 
   const beforePos = new THREE.Vector3(0, 50, 0);
   beforePos.normalize();
@@ -160,11 +167,14 @@ window.addEventListener('click', (e) => {
   const qtn = new THREE.Quaternion().setFromAxisAngle(normalAxis, radians);
   app.satellite.quaternion.premultiply(qtn);
   // console.log(app.satellite.position);
+  app.satellite.position.set(120, 0, 0);
   isMoved = true;
   app.render();
   resetAxis = new THREE.Vector3().crossVectors(subVector, beforePos).normalize();
 
   beforeRadians = radians;
+
+
 
   // - ２を掛けて１を引く -------------------------------------------------
   // WebGL やグラフィックスプログラミングの文脈では、座標の値を加工するよう
