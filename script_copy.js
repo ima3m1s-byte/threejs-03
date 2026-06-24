@@ -99,7 +99,8 @@ class ThreeApp {
   render() {
     requestAnimationFrame(this.render);
 
-    if (this.anime && this.group.rotation.z <= 2 * Math.PI) {
+    if (this.anime) {
+
       this.group.rotation.z += 0.02;
     }
 
