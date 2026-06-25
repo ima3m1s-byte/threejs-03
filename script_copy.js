@@ -108,13 +108,7 @@ class ThreeApp {
     requestAnimationFrame(this.render);
 
     if (this.anime) {
-      const qua = app.satellite.quaternion;
-      const groupQua = app.group.quaternion;
 
-      const target = new THREE.Quaternion();
-      const axis = new THREE.Vector3(qua._x, qua._y, qua._z).normalize();
-      target.setFromAxisAngle(axis, 0.02);
-      groupQua.multiply(target);
       // this.group.rotation.z += 0.02;
     }
 
@@ -146,7 +140,15 @@ animeBtn.addEventListener("click", () => {
 const resetBtn = document.querySelector(".reset");
 resetBtn.addEventListener("click", () => {
   app.anime = false;
+  const qua = app.satellite.quaternion;
+  const groupQua = app.group.quaternion;
 
+  const target = new THREE.Quaternion();
+  const axis = new THREE.Vector3(qua._x, qua._y, qua._z).normalize();
+  target.setFromAxisAngle(axis, 0.02);
+  console.log(target);
+  app.satellite.position.set(target);
+  groupQua.multiply(target);
 
 });
 
