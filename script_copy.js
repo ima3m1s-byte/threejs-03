@@ -100,14 +100,22 @@ class ThreeApp {
       this.renderer.render(this.scene, this.camera);
     }, false);
     this.wrapper.appendChild(this.renderer.domElement);
+
+
   }
 
   render() {
     requestAnimationFrame(this.render);
 
     if (this.anime) {
+      const qua = app.satellite.quaternion;
+      const groupQua = app.group.quaternion;
 
-      this.group.rotation.z += 0.02;
+      const target = new THREE.Quaternion();
+      const axis = new THREE.Vector3(qua._x, qua._y, qua._z).normalize();
+      target.setFromAxisAngle(axis, 0.02);
+      groupQua.multiply(target);
+      // this.group.rotation.z += 0.02;
     }
 
     // canvas要素をラッパーの子要素にする
@@ -126,15 +134,19 @@ window.addEventListener("DOMContentLoaded", () => {
 
 const rotateBtn = document.querySelector(".rotatebtn");
 rotateBtn.addEventListener("click", () => {
-
   app.satellite.rotateX(2 * Math.PI / 360 * rotateBtn.dataset.rotate);
-
-  app.render();
 });
 
 
 const animeBtn = document.querySelector(".animebtn");
 animeBtn.addEventListener("click", () => {
   app.anime = !app.anime;
+});
+
+const resetBtn = document.querySelector(".reset");
+resetBtn.addEventListener("click", () => {
+  app.anime = false;
+
+
 });
 
