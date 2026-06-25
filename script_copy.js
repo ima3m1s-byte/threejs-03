@@ -25,12 +25,13 @@ class ThreeApp {
     this.anime = false;
 
     this.coneGeometry = new THREE.ConeGeometry(10, 25, 32);
-    this.satelliteMaterial = new THREE.MeshPhongMaterial({ color: 0xff00dd });
+    this.satelliteMaterial = new THREE.MeshPhongMaterial({ color: 0xff0000 });
     this.satellite = new THREE.Mesh(this.coneGeometry, this.satelliteMaterial);
     this.satellite.position.set(ThreeApp.SATELLITE_DISTANCE, 0, 0);
 
     this.ball = new THREE.SphereGeometry(100, 32, 32);
-    this.earthMaterial = new THREE.MeshPhongMaterial({ color: 0x00ff33 });
+    this.earthMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff });
+
     this.earth = new THREE.Mesh(this.ball, this.earthMaterial);
 
     this.group.add(this.satellite);
@@ -48,6 +49,12 @@ class ThreeApp {
     }, false);
 
     this.wrapper.appendChild(this.renderer.domElement);
+  }
+
+  async load() {
+    const loader = new THREE.TextureLoader();
+    const earthPath = './earth.jpg';
+    this.earthTexture = await loader.loadAsync(earthPath);
   }
 
   render() {
@@ -83,8 +90,10 @@ class ThreeApp {
 const wrapper = document.querySelector('#webgl');
 const app = new ThreeApp(wrapper);
 
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("DOMContentLoaded", async () => {
   app.renderer.setSize(window.innerWidth, window.innerHeight);
+  await app.load();
+  app.earthMaterial.map = app.earthTexture;
   app.render();
 });
 
